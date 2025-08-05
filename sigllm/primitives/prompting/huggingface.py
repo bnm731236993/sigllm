@@ -143,6 +143,7 @@ class HF:
             # 提示词范例
             one_shot_message = PROMPTS['one_shot_prefix'] + normal + '\n\n'
 
+        # 遍历时序字符串列表
         for text in tqdm(X):
             # 系统提示词
             system_message = PROMPTS['system_message']

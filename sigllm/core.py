@@ -43,9 +43,11 @@ class SigLLM(Orion):
             Additional hyperparameters to set to the Pipeline.
     """
 
+    # 默认流水线，记录在文件中
     DEFAULT_PIPELINE = 'mistral_detector'
 
     def _augment_hyperparameters(self, primitive, key, value):
+        """ 添加超参数 """
         if not value:
             return
 
@@ -66,6 +68,7 @@ class SigLLM(Orion):
         hyperparameters: dict = None,
     ):
         self._pipeline = pipeline or self.DEFAULT_PIPELINE
+        # 超参数字典
         self._hyperparameters = hyperparameters
         self._mlpipeline = self._get_mlpipeline()
         self._fitted = False
@@ -74,6 +77,7 @@ class SigLLM(Orion):
         self.decimal = decimal
         self.window_size = window_size
 
+        # 定义超参数
         self._augment_hyperparameters(INTERVAL_PRIMITIVE, 'interval', interval)
         self._augment_hyperparameters(DECIMAL_PRIMITIVE, 'decimal', decimal)
         self._augment_hyperparameters(WINDOW_SIZE_PRIMITIVE, 'window_size', window_size)
@@ -116,8 +120,10 @@ class SigLLM(Orion):
             data (DataFrame):
                 Input data, passed as a ``pandas.DataFrame`` containing
                 exactly two columns: timestamp and value.
+                传入DataFrame对象，包括timestamp和value两个列。
             normal (DataFrame, optional):
                 Normal reference data for one-shot prompting, passed as a ``pandas.DataFrame``
+                正常的参考数据
                 containing exactly two columns: timestamp and value. If None, zero-shot
                 prompting is used. Default to None.
             visualization (bool):
@@ -138,6 +144,7 @@ class SigLLM(Orion):
         if normal is not None:
             kwargs['normal'] = normal
 
+        # 检测
         result = self._detect(self._mlpipeline.fit, data, visualization, **kwargs)
         self._fitted = True
 

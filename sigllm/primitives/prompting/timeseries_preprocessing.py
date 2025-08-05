@@ -10,6 +10,7 @@ import numpy as np
 
 def rolling_window_sequences(X, window_size=500, step_size=100):
     """Create rolling window sequences out of time series data.
+    为时间序列数据创建滚动窗口序列
 
     This function creates an array of sequences by rolling over the input sequence.
 
@@ -23,10 +24,11 @@ def rolling_window_sequences(X, window_size=500, step_size=100):
 
     Returns:
         ndarray, ndarray:
-            * rolling window sequences.
+            * rolling window sequences. 滑动窗口列表
             * first index value of each input sequence.
     """
     index = range(len(X))
+    # 输出滑动窗口列表
     out_X = list()
     X_index = list()
 
@@ -34,7 +36,9 @@ def rolling_window_sequences(X, window_size=500, step_size=100):
     max_start = len(X) - window_size + 1
     while start < max_start:
         end = start + window_size
+        # 切片
         out_X.append(X[start:end])
+        # 记录起始索引
         X_index.append(index[start])
         start = start + step_size
     return np.asarray(out_X), np.asarray(X_index), window_size, step_size

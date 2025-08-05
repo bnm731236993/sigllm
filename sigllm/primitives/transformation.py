@@ -127,6 +127,7 @@ def format_as_integer(X, sep=',', trunc=None, errors='ignore'):
 
 class Float2Scalar:
     """Convert an array of float values to scalar.
+    将浮点数转化为整数
 
     Transforms an array of floats to an array integers. With the
     option to rescale such that the minimum value becomes zero
@@ -137,8 +138,10 @@ class Float2Scalar:
     Args:
         decimal (int):
             Number of decimal points to keep from the float representation. Default to `2`.
+            保留的小数点数，也就是乘以10的几次方
         rescale (bool):
             Whether to rescale the array such that the minimum value becomes 0. Default to `True`.
+            是否将数组进行缩放，将最小值变为0
     """
 
     def __init__(self, decimal=2, rescale=True):
@@ -153,11 +156,13 @@ class Float2Scalar:
     def transform(self, X):
         """Transform data."""
         if self.rescale:
+            # 减去最小值
             X = X - self.minimum
 
+        # 记录正负
         sign = 1 * (X >= 0) - 1 * (X < 0)
+        # 整数化
         values = np.abs(X)
-
         values = sign * (values * 10**self.decimal).astype(int)
 
         return values, self.minimum, self.decimal
