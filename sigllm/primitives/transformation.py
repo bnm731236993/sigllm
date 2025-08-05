@@ -58,6 +58,7 @@ def format_as_string(X, sep=',', space=False, single=False):
 
 def _from_string_to_integer(text, sep=',', trunc=None, errors='ignore'):
     """Convert a text sequence consisting of digits to an array of integers."""
+    # 删除空格
     nospace = re.sub(r'\s+', '', text)
     rule = f'[^0-9|{sep}]'
 
@@ -65,8 +66,10 @@ def _from_string_to_integer(text, sep=',', trunc=None, errors='ignore'):
         search = re.search(rule, nospace)
         if bool(search):
             start, end = search.span()
-            raise ValueError(f'Encountered a non-digit value {nospace[start:end]}.')
+            raise ValueError(
+                f'Encountered a non-digit value {nospace[start:end]}.')
 
+    # 过滤空字符串、None
     values = list(filter(None, nospace.split(sep)))
 
     if errors == 'ignore':
@@ -76,7 +79,9 @@ def _from_string_to_integer(text, sep=',', trunc=None, errors='ignore'):
         clean = list(map(lambda x: re.sub(rule, '', x), values))
 
     elif errors == 'coerce':
-        clean = list(map(lambda x: x if not bool(re.search(rule, x)) else np.nan, values))
+        # 如果有异常字符，则置为None
+        clean = list(map(lambda x: x if not bool(
+            re.search(rule, x)) else np.nan, values))
 
     else:
         raise KeyError(f'Unknown errors strategy {errors}.')
@@ -91,6 +96,7 @@ def _from_string_to_integer(text, sep=',', trunc=None, errors='ignore'):
 
 def format_as_integer(X, sep=',', trunc=None, errors='ignore'):
     """Format a nested list of text into an array of integers.
+    将文本转化为整数列表
 
     Transforms a list of list of string input as 3-D array of integers,
     seperated by the indicated seperator and truncated based on `trunc`.
@@ -121,7 +127,7 @@ def format_as_integer(X, sep=',', trunc=None, errors='ignore'):
         sample = list()
         if not isinstance(string_list, list):
             raise ValueError('Input is not a list of lists.')
-
+        # 遍历字符串
         for text in string_list:
             if not text:  # empty string
                 sample.append(np.array([], dtype=float))
