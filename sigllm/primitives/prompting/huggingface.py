@@ -8,8 +8,9 @@ import torch
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+# 提示词文件路径
 PROMPT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'huggingface_messages.json')
-
+# 加载提示词
 PROMPTS = json.load(open(PROMPT_PATH))
 
 LOGGER = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ DEFAULT_PAD_TOKEN = '<pad>'
 
 VALID_NUMBERS = list('0123456789')
 
+# 默认模型，会在pipelines重新定义
 DEFAULT_MODEL = 'mistralai/Mistral-7B-Instruct-v0.2'
 
 
@@ -76,6 +78,7 @@ class HF:
         self.tokenizer = AutoTokenizer.from_pretrained(self.name, use_fast=False)
 
         # special tokens
+        # 如果原模型没有定义特殊Token，则主动定义
         special_tokens_dict = dict()
         if self.tokenizer.eos_token is None:
             special_tokens_dict['eos_token'] = DEFAULT_EOS_TOKEN
@@ -103,16 +106,19 @@ class HF:
         else:
             self.invalid_tokens = None
 
+        # 加载模型
         self.model = AutoModelForCausalLM.from_pretrained(
             self.name,
             device_map='auto',
             torch_dtype=torch.float16,
         )
 
+        # 模型进入eval模式
         self.model.eval()
 
     def detect(self, X, normal=None, **kwargs):
         """Use HF to detect anomalies of a signal.
+        检测单条信号的异常点
 
         Args:
             X (ndarray):
@@ -120,10 +126,11 @@ class HF:
             normal (str, optional):
                 A normal reference sequence for one-shot prompting. If None,
                 zero-shot prompting is used. Default to None.
+                为模型进行one-shot提示，没有就是零样本提示
 
         Returns:
             list, list:
-                * List of detected anomalous values.
+                * List of detected anomalous values. 返回所有的异常点
                 * Optionally, a list of dictionaries for raw output.
         """
         input_length = len(self.tokenizer.encode(X[0].flatten().tolist()[0]))
@@ -133,28 +140,34 @@ class HF:
         # Prepare the one-shot example if provided
         one_shot_message = ''
         if normal is not None:
+            # 提示词范例
             one_shot_message = PROMPTS['one_shot_prefix'] + normal + '\n\n'
 
         for text in tqdm(X):
+            # 系统提示词
             system_message = PROMPTS['system_message']
             if self.restrict_tokens:
                 user_message = PROMPTS['user_message']
             else:
+                # 用户提示词
                 user_message = PROMPTS['user_message_2']
 
             # Combine messages with one-shot example if provided
+            # 提示词拼接
             message = ' '.join([
                 system_message,
                 one_shot_message,
                 user_message,
                 text,
+                # 该标志往后的是响应
                 '[RESPONSE]',
             ])
 
             input_length = len(self.tokenizer.encode(message))
-
+            # 分词器
             tokenized_input = self.tokenizer(message, return_tensors='pt').to('cuda')
 
+            # 生成参数
             generate_kwargs = {
                 'do_sample': True,
                 'max_new_tokens': max_tokens,
@@ -167,7 +180,7 @@ class HF:
             # Only add bad_words_ids if token restriction is enabled
             if self.restrict_tokens:
                 generate_kwargs['bad_words_ids'] = self.invalid_tokens
-
+            # 生成
             generate_ids = self.model.generate(**tokenized_input, **generate_kwargs)
 
             if self.restrict_tokens:
@@ -178,14 +191,17 @@ class HF:
                 )
             else:  # Extract only the part after [RESPONSE]
                 # Get the full generated text
+                # 解析响应
                 full_responses = self.tokenizer.batch_decode(
                     generate_ids,
                     skip_special_tokens=True,
                     clean_up_tokenization_spaces=False,
                 )
                 responses = []
+                # 遍历响应
                 for full_response in full_responses:
                     try:
+                        # 截取部分
                         response = full_response.split('[RESPONSE]')[1].strip()
                         responses.append(response)
                     except IndexError:
