@@ -8,17 +8,23 @@ import numpy as np
 
 def format_as_string(X, sep=',', space=False, single=False):
     """Format X to a list of string.
+    将整数序列转换为字符串
 
     Transform an array of integers to string(s), separated by the
     indicated separator and space. Handles two cases:
     - If single=True, treats X as a single time series (window_size, 1)
     - If single=False, treats X as multiple windows (num_windows, window_size, 1)
+    支持两种格式：
+    - 无窗口时间序列，即是整个序列只有一个窗口 (W, 1)，1的作用是向量化
+    - 多窗口时间序列 (N, W, 1)
 
     Args:
         sep (str):
             String to separate each element in X. Default to `','`.
+            分隔符
         space (bool):
             Whether to add space between each digit in the result. Default to `False`.
+            是否需要空白间隔
         single (bool):
             Whether to treat X as a single time series. If True, expects (window_size, 1)
             and returns a single string. If False, expects (num_windows, window_size, 1)
@@ -31,16 +37,21 @@ def format_as_string(X, sep=',', space=False, single=False):
     """
 
     def _as_string(x):
+        # 平铺数字数组，强制转换为字符串
         text = sep.join(list(map(str, x.flatten())))
         if space:
+            # 数字之间追加空格
             text = ' '.join(text)
         return text
 
+    # 单窗口
     if single:
         # single time series (window_size, 1)
         return _as_string(X)
+    # 多窗口
     else:
         # multiple windows (num_windows, window_size, 1)
+        # 为每个窗口执行函数
         results = list(map(_as_string, X))
         return np.array(results)
 
@@ -88,9 +99,11 @@ def format_as_integer(X, sep=',', trunc=None, errors='ignore'):
     Args:
         sep (str):
             String to separate each element in values. Default to `','`.
+            分隔符
         trunc (int):
             How many values to keep from the ndarray. Default to `None`,
             which retains all values.
+            限制最大长度
         errors (str):
             Strategy to deal with erroneous values (not digits). Default
             to `'ignore'`.

@@ -4,14 +4,22 @@
         "sklearn.impute.SimpleImputer",
         // 浮点数转换为整数
         "sigllm.primitives.transformation.Float2Scalar",
+        // 滑动窗口
         "sigllm.primitives.forecasting.custom.rolling_window_sequences",
+        // 整数序列转换为字符串序列
         "sigllm.primitives.transformation.format_as_string",
+        // 调用LLM
         "sigllm.primitives.forecasting.huggingface.HF",
+        // 字符串序列转换为整数序列
         "sigllm.primitives.transformation.format_as_integer",
+        // 整数序列转换为浮点数序列
         "sigllm.primitives.transformation.Scalar2Float",
+        // 重新整合滑动窗口
         "sigllm.primitives.postprocessing.aggregate_rolling_window",
+        // 变形
         "numpy.reshape",
         "orion.primitives.timeseries_errors.regression_errors",
+        // 找出异常
         "orion.primitives.timeseries_anomalies.find_anomalies"
     ],
     "init_params": {
