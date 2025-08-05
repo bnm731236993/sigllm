@@ -5,6 +5,7 @@ import logging
 import torch
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from modelscope import snapshot_download
 
 LOGGER = logging.getLogger(__name__)
 
@@ -63,7 +64,9 @@ class HF:
         self.samples = samples
         self.padding = padding
 
-        self.tokenizer = AutoTokenizer.from_pretrained(self.name, use_fast=False)
+        self.model_path = snapshot_download("Qwen/Qwen2.5-1.5B-Instruct")
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.model_path, use_fast=False)
 
         # special tokens
         special_tokens_dict = dict()
@@ -77,7 +80,8 @@ class HF:
             special_tokens_dict['pad_token'] = DEFAULT_PAD_TOKEN
 
         self.tokenizer.add_special_tokens(special_tokens_dict)
-        self.tokenizer.pad_token = self.tokenizer.eos_token  # indicate the end of the time series
+        # indicate the end of the time series
+        self.tokenizer.pad_token = self.tokenizer.eos_token
 
         # invalid tokens
         valid_tokens = []
@@ -91,7 +95,7 @@ class HF:
         ]
 
         self.model = AutoModelForCausalLM.from_pretrained(
-            self.name,
+            self.model_path,
             device_map='auto',
             torch_dtype=torch.float16,
         )
@@ -113,7 +117,8 @@ class HF:
         """
         all_responses, all_probs = [], []
         for text in tqdm(X):
-            tokenized_input = self.tokenizer([text], return_tensors='pt').to('cuda')
+            tokenized_input = self.tokenizer(
+                [text], return_tensors='pt').to('cuda')
 
             input_length = tokenized_input['input_ids'].shape[1]
             average_length = input_length / len(text.split(','))

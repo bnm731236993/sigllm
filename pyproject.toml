@@ -5,7 +5,22 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+    "matplotlib>=3.6.3",
+    "modelscope>=1.28.1",
     "orion-ml>=0.7.1",
     "tensorflow-gpu==2.6",
     "torch>=2.1.2",
 ]
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+]
+
+[tool.setuptools.packages.find]
+include = ['sigllm', 'sigllm.*']
+namespaces = false
+
+[project.entry-points.mlblocks]
+pipelines = 'sigllm:MLBLOCKS_PIPELINES'
+primitives = 'sigllm:MLBLOCKS_PRIMITIVES'
